@@ -1,8 +1,5 @@
-# draggable-example
+# column draggable table
 
-> Example usage of [vue.draggable](https://github.com/SortableJS/Vue.Draggable)
-
-![demo gif](example.gif)
 
 ## Build Setup
 
