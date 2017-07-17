@@ -18,18 +18,14 @@ import {ServerTable, ClientTable, Event} from 'vue-tables-2';
 import draggable from 'vuedraggable'
 Vue.use(ClientTable, {
   compileTemplates: true,
-  //highlightMatches: true,
-  //pagination: {
-  // dropdown:true
-  // chunk:5
-  // },
+  highlightMatches: true,
   filterByColumn: true,
   texts: {
     filter: "Search:"
   },
- /* datepickerOptions: {
+  datepickerOptions: {
     showDropdowns: true
-  }*/
+  }
   //skin:''
 });
 
@@ -41,8 +37,8 @@ export default({
   },
   data () {
     return {
-    columns: ['name', 'age','id'],
-    //tableTitles: this.columns.map( (name,index) => {return {name, order: index+1, fixed: false}; }),
+    columns: ['name','age','id'],
+    noShowColumns:[],
     tableData: [
       {id: 1, name: "John", age: "20"},
       {id: 2, name: "Jane", age: "24"},
@@ -51,19 +47,35 @@ export default({
       {id: 5, name: "Dan", age: "40"}
     ],
     options: {
-      filterByColumn: true,
-      listColumns: {
+      //filterByColumn: true,
+      /*pagination: { chunk:5 },
+      pagination: { dropdown:false },
+      perPage:2,
+      perPageValues:[10,25,50,100],*/
+      /*listColumns: {
         animal: [
           { id:1, text: 'Dog' },
           { id:2, text: 'Cat' },
           { id:3, text: 'Tiger' },
           { id:4, text: 'Bear' }
           ]
-        }
-      }
+        },*/
+      //dateColumns:['name'],//Filter by
+      /*initFilters:{
+
+      }*/
+
     }
+   }
   }
 })
+
+function noShow(index) {
+  var columnName = this.columns[index];
+  console.log(columnName)
+  this.noShowColumns.add(columnName)
+  this.columns
+}
 
 // Courtesy of Tomasz Nurkiewicz (http://stackoverflow.com/questions/9035627/elegant-method-to-generate-array-of-random-dates-within-two-dates)
 

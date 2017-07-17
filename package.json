@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "bootstrap": "^3.3.7",
+    "muse-ui": "^2.1.0",
     "vue": "^2.1.0",
     "vuedraggable": "^2.14.1",
     "vuex": "^2.3.1"
