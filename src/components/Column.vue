@@ -1,14 +1,11 @@
 <template>
   <div>
     <div>
-      <!--<mu-raised-button label="unselect" @click="unselect"/>-->
       <mu-table :showCheckbox="false" ref="table">
         <mu-thead >
           <mu-tr>
-            <mu-th >
-              <mu-text-field disabled v-model="title">
-                  {{title.colName}}
-              </mu-text-field>
+            <mu-th>
+              {{title.alias}}
             </mu-th>
           </mu-tr>
         </mu-thead>
@@ -16,7 +13,7 @@
           <mu-tr  v-for="(val,i) in dataList">
             <div v-for="(va,key) in val" >
               <mu-td v-if="key==title.colName">
-                {{sumCal(va)}}
+                {{va}}
               </mu-td>
             </div>
           </mu-tr>
@@ -86,6 +83,9 @@
       sumCal (data) {
         this.sum = this.sum + data.length;
         return data;
+      },
+      addStr (str){
+          return '（' + str + '）'
       }
     }
   }
