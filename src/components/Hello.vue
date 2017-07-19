@@ -18,8 +18,8 @@
               <h3 class="panel-title"></h3>
             </div>
             <div class="panel-body" style="width: 1500px">
-              <draggable class="list-group" element="ul"  :options="dragOptions" :move="onMove" @start="isDragging=true" @end="isDragging=false">
-                <transition-group type="transition" :name="'flip-list'">
+              <draggable class="list-group" element="div" v-model="titles"  :options="dragOptions" :move="onMove" @start="isDragging=true" @end="isDragging=true">
+                <transition-group type="transition" :name="'flip-list'" >
                   <div :style="colsStyle" v-for="(element,index) in showCols" :key="element.order"  >
                     <column  v-bind:dataList="dataList" v-bind:title="element.name" v-bind:index="index"/>
                   </div>
@@ -28,6 +28,7 @@
             </div>
           </div>
           <div>
+            <mu-raised-button label="保存列信息" @click="saveColInfo()"/>
             <mu-raised-button label="选择显示列" @click="toggle()"/>
             <mu-drawer right :open="open" :docked="docked" @close="toggle()">
               <mu-list @itemClick="docked ? '' : toggle()">
@@ -100,6 +101,8 @@ export default {
     onMove ({relatedContext, draggedContext}) {
       const relatedElement = relatedContext.element;
       const draggedElement = draggedContext.element;
+      //console.log(draggedContext)
+      //console.log(relatedContext)
       return (!relatedElement || !relatedElement.fixed) && !draggedElement.fixed
     },
     toggle (flag) {
@@ -112,6 +115,23 @@ export default {
       }else {
         return '隐藏'
       }
+    },
+    saveColInfo(){
+      var array = new Array();
+      //console.log(this.titles)
+      this.titles.forEach(function (t) {
+         var object = {};
+         object.colName = t.name.colName;
+         object.alias = t.name.alias;
+         object.show = t.name.show;
+         array.push(object)
+      })
+      console.log(JSON.stringify(array))
+      Vue.http.get('http://localhost:8089/saveColInfo',{params: {colInfo: JSON.stringify(array)}}).then((response) => {
+        console.log(response);
+      }, (response) => {
+
+      });
     },
     handleTabChange (val) {
       this.activeTab = val
