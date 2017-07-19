@@ -1,5 +1,8 @@
 <template>
   <div class="layout">
+    <div>
+      <mu-snackbar v-if="snackbar" :message="snackbarMessage" action="关闭" @actionClick="hideSnackbar" @close="hideSnackbar"/>
+    </div>
     <div class="header">
       <div class="logo">
         可拖动列表
@@ -30,6 +33,8 @@
           <div>
             <mu-raised-button label="保存列信息" @click="saveColInfo()"/>
             <mu-raised-button label="选择显示列" @click="toggle()"/>
+            <mu-raised-button label="start timer" @click="startTimer(2000)"/>
+            <mu-raised-button label="stop timer" @click="clearTimer"/>
             <mu-drawer right :open="open" :docked="docked" @close="toggle()">
               <mu-list @itemClick="docked ? '' : toggle()">
                 <div v-for="e in titles">
@@ -92,12 +97,12 @@ export default {
       docked: true,
       activeTab: 'tab1',
       oldColName:"",
+      snackbar: false,
+      snackbarMessage:'',
+      timer:null,
     }
   },
   methods:{
-    orderList () {
-      this.list = this.list.sort((one,two) =>{return one.order-two.order; })
-    },
     onMove ({relatedContext, draggedContext}) {
       const relatedElement = relatedContext.element;
       const draggedElement = draggedContext.element;
@@ -126,15 +131,18 @@ export default {
          object.show = t.name.show;
          array.push(object)
       })
-      console.log(JSON.stringify(array))
+      //console.log(JSON.stringify(array))
       Vue.http.get('http://localhost:8089/saveColInfo',{params: {colInfo: JSON.stringify(array)}}).then((response) => {
         console.log(response);
+        if(response.status==200){
+          this.snackbarMessage = '更新成功！'
+          this.snackbar = true
+          if (this.snackTimer) clearTimeout(this.snackTimer)
+          this.snackTimer = setTimeout(() => { this.snackbar = false }, 2000)
+        }
       }, (response) => {
 
       });
-    },
-    handleTabChange (val) {
-      this.activeTab = val
     },
     changing (event,colName){
       var alias = event.target.value;
@@ -160,6 +168,60 @@ export default {
       //console.log(event)
       this.oldColName = event
     },
+    hideSnackbar () {
+      this.snackbar = false
+      if (this.snackTimer) clearTimeout(this.snackTimer)
+    },
+    startTimer(timestamp){
+      if(this.timer == null){
+          this.timer = window.setInterval(function (thisis) {
+            console.log(new Date())
+            Vue.http.get('http://localhost:8089/dataList', {name: 'jobList'}).then((response) => {
+              console.log(response);
+              let json = JSON.parse(response.bodyText);
+              var sum = thisis.titles;
+              sum.forEach(function (s) {
+                s.name.sum = undefined;
+              })
+              json.forEach(function (d) {
+                Object.entries(d).forEach(function (v,i) {
+                  sum.forEach(function (t) {
+                    if(t.name.colName == v[0]){
+                      if(t.name.sum==undefined){
+                        t.name.sum = v[1]
+                      }else {
+                        t.name.sum = t.name.sum + v[1]
+                      }
+                    }
+                  })
+                })
+              });
+              //this.titles = sum;
+              thisis.dataList = json;
+              thisis.colsStyle.width = String(100/thisis.dataList.length) + '%';
+              console.log(thisis.colsStyle.width);
+            }, (response) => {
+
+            })
+          }(this),timestamp);
+      }else {
+        this.snackbarMessage = '已开启定时器'
+        this.snackbar = true
+        if (this.snackTimer) clearTimeout(this.snackTimer)
+        this.snackTimer = setTimeout(() => { this.snackbar = false }, 2000)
+      }
+
+    },
+    clearTimer(){
+      if(this.timer != null){
+        window.clearInterval(this.timer);
+        this.timer = null;
+        this.snackbarMessage = '定时器已关闭'
+        this.snackbar = true
+        if (this.snackTimer) clearTimeout(this.snackTimer)
+        this.snackTimer = setTimeout(() => { this.snackbar = false }, 2000)
+      }
+    },
   },
   computed: {
     dragOptions () {
@@ -169,12 +231,6 @@ export default {
         disabled: !this.editable,
         ghostClass: 'ghost'
       };
-    },
-    listString(){
-      return JSON.stringify(this.list, null, 2);
-    },
-    list2String(){
-      return JSON.stringify(this.list2, null, 2);
     },
     showCols(){
       return this.titles.filter(function (t) {
@@ -198,7 +254,7 @@ export default {
       console.log(response);
       let json = JSON.parse(response.bodyText);
       this.titles = json.map( (name,index) => {return {name,index, order: index+1, fixed: false}; });
-      console.log("titles:",json)
+      //console.log("titles:",json)
     }, (response) => {
 
     });
@@ -210,11 +266,11 @@ export default {
         Object.entries(d).forEach(function (v,i) {
           sum.forEach(function (t) {
             if(t.name.colName == v[0]){
-                if(t.name.sum==undefined){
-                  t.name.sum = v[1]
-                }else {
-                  t.name.sum = t.name.sum + v[1]
-                }
+              if(t.name.sum==undefined){
+                t.name.sum = v[1]
+              }else {
+                t.name.sum = t.name.sum + v[1]
+              }
             }
           })
         })
@@ -226,6 +282,7 @@ export default {
     }, (response) => {
 
     })
+
   }
 }
 
@@ -284,5 +341,9 @@ export default {
 .footer{
   padding: 20px 0;
   text-align: center;
+}
+
+.demo-snackbar-button{
+  margin: 12px;
 }
 </style>
