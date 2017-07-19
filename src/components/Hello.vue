@@ -33,7 +33,7 @@
               <mu-list @itemClick="docked ? '' : toggle()">
                 <div v-for="e in titles">
                   <mu-list-item v-bind:title="e.name.colName">
-                    <mu-text-field  :errorText="inputErrorText" @blur="changing($event,e.name.colName)"  label="设置列名"  :maxLength="10" v-model="e.name.alias"/>
+                    <mu-text-field @focus="oldColNamed(e.name.colName)"  @blur="changing($event,e.name.colName)"  label="设置列名"  :maxLength="10" v-model="e.name.alias"/>
                     <mu-checkbox  v-bind:label="showInfo(e.name.show)" v-model="e.name.show" />
                   </mu-list-item>
                 </div>
@@ -90,7 +90,7 @@ export default {
       open: false,
       docked: true,
       activeTab: 'tab1',
-      inputErrorText:'',
+      oldColName:"",
     }
   },
   methods:{
@@ -117,14 +117,29 @@ export default {
       this.activeTab = val
     },
     changing (event,colName){
-      var alias = event.target.value
+      var alias = event.target.value;
+      var title;
+      var repick = false;
+      var oldColName = this.oldColName
       this.titles.forEach(function (t) {
-        if(t.name.colName!=colName && t.name.alias==alias){
-          console.log("别名重复",alias,colName,event)
-          t.name.alias = t.name.alias + " old"
+          //console.log(oldColName,t)
+        if(oldColName == String(t.name.colName)){
+          title = t;
+          //console.log("old col name:",title)
         }
-      })
-    }
+        if(t.name.colName!=colName && t.name.alias==alias){
+          //console.log("别名重复",alias,colName,event)
+          repick = true;
+        }
+      });
+      if(repick){
+        title.name.alias = alias + " new"
+      }
+    },
+    oldColNamed (event){
+      //console.log(event)
+      this.oldColName = event
+    },
   },
   computed: {
     dragOptions () {
