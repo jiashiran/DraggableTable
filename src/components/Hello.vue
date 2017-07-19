@@ -1,32 +1,50 @@
 <template>
-  <div class="fluid container">
-    <div class="form-group form-group-lg panel panel-default">
-      <div class="panel-heading">
-        <h3 class="panel-title">可拖动列表</h3>
+  <div class="layout">
+    <div class="header">
+      <div class="logo">
+        可拖动列表
       </div>
-      <div class="panel-body">
-        <draggable class="list-group" element="ul" v-model="column" :options="dragOptions" :move="onMove" @start="isDragging=true" @end="isDragging=false">
-          <transition-group type="transition" :name="'flip-list'">
-            <div :style="colsStyle" v-for="(element,index) in showCols" :key="element.order"  >
-              <column  v-bind:dataList="dataList" v-bind:title="element.name" v-bind:index="index"/>
-            </div>
-          </transition-group>
-        </draggable>
+      <div class="nav">
       </div>
     </div>
-    <div>
-      <mu-raised-button label="选择显示列" @click="toggle()"/>
-      <mu-drawer :open="open" :docked="docked" @close="toggle()">
-        <mu-list @itemClick="docked ? '' : toggle()">
-          <div v-for="e in titles">
-            <mu-list-item v-bind:title="e.name.colName">
-              <mu-text-field  label="设置列名"  :maxLength="10" v-model="e.name.alias"/>
-              <mu-checkbox  v-bind:label="showInfo(e.name.show)" v-model="e.name.show" />
-            </mu-list-item>
-           </div>
-          <mu-list-item v-if="docked" @click.native="open = false" title="关闭"/>
-        </mu-list>
-      </mu-drawer>
+    <div class="content">
+      <!--<div class="breadcrumb">
+      </div>-->
+      <div class="body">
+        <!--<mu-sub-header>阳光</mu-sub-header>-->
+        <mu-content-block>
+          <div class="form-group form-group-lg panel panel-default">
+            <div class="panel-heading">
+              <h3 class="panel-title"></h3>
+            </div>
+            <div class="panel-body" style="width: 1500px">
+              <draggable class="list-group" element="ul"  :options="dragOptions" :move="onMove" @start="isDragging=true" @end="isDragging=false">
+                <transition-group type="transition" :name="'flip-list'">
+                  <div :style="colsStyle" v-for="(element,index) in showCols" :key="element.order"  >
+                    <column  v-bind:dataList="dataList" v-bind:title="element.name" v-bind:index="index"/>
+                  </div>
+                </transition-group>
+              </draggable>
+            </div>
+          </div>
+          <div>
+            <mu-raised-button label="选择显示列" @click="toggle()"/>
+            <mu-drawer right :open="open" :docked="docked" @close="toggle()">
+              <mu-list @itemClick="docked ? '' : toggle()">
+                <div v-for="e in titles">
+                  <mu-list-item v-bind:title="e.name.colName">
+                    <mu-text-field  :errorText="inputErrorText" @blur="changing($event,e.name.colName)"  label="设置列名"  :maxLength="10" v-model="e.name.alias"/>
+                    <mu-checkbox  v-bind:label="showInfo(e.name.show)" v-model="e.name.show" />
+                  </mu-list-item>
+                </div>
+                <mu-list-item v-if="docked" @click.native="open = false" title="关闭"/>
+              </mu-list>
+            </mu-drawer>
+          </div>
+        </mu-content-block>
+      </div>
+    </div>
+    <div class="footer">
     </div>
   </div>
 </template>
@@ -48,7 +66,7 @@ import VueResource from 'vue-resource'
 Vue.use(VueResource)
 Vue.use(MuseUI)
 
-Vue.http.options.emulateHTTP = true
+Vue.http.options.emulateHTTP = true;
 Vue.http.options.emulateJSON = true;
 export default {
   name: 'hello',
@@ -62,7 +80,7 @@ export default {
           float:'left',
           width: '5%',
       },
-      //column:column,
+      column:column,
       editable:true,
       isDragging: false,
       delayedDragging:false,
@@ -71,6 +89,8 @@ export default {
       showTitles:[],
       open: false,
       docked: true,
+      activeTab: 'tab1',
+      inputErrorText:'',
     }
   },
   methods:{
@@ -93,6 +113,18 @@ export default {
         return '隐藏'
       }
     },
+    handleTabChange (val) {
+      this.activeTab = val
+    },
+    changing (event,colName){
+      var alias = event.target.value
+      this.titles.forEach(function (t) {
+        if(t.name.colName!=colName && t.name.alias==alias){
+          console.log("别名重复",alias,colName,event)
+          t.name.alias = t.name.alias + " old"
+        }
+      })
+    }
   },
   computed: {
     dragOptions () {
@@ -130,15 +162,30 @@ export default {
     Vue.http.get('http://localhost:8089/colNames',{name: 'jobList'}).then((response) => {
       console.log(response);
       let json = JSON.parse(response.bodyText);
-      this.titles = json.map( (name,index) => {return {name,index, order: index+1, fixed: false}; });//.map( (name,index) => {return {name,index, order: index+1, fixed: false}; });
+      this.titles = json.map( (name,index) => {return {name,index, order: index+1, fixed: false}; });
       console.log("titles:",json)
     }, (response) => {
 
     });
     Vue.http.get('http://localhost:8089/dataList', {name: 'jobList'}).then((response) => {
       console.log(response);
-      let json = response.bodyText;
-      this.dataList = JSON.parse(json);
+      let json = JSON.parse(response.bodyText);
+      var sum = this.titles;
+      json.forEach(function (d) {
+        Object.entries(d).forEach(function (v,i) {
+          sum.forEach(function (t) {
+            if(t.name.colName == v[0]){
+                if(t.name.sum==undefined){
+                  t.name.sum = v[1]
+                }else {
+                  t.name.sum = t.name.sum + v[1]
+                }
+            }
+          })
+        })
+      });
+      this.titles = sum;
+      this.dataList = json;
       this.colsStyle.width = String(100/this.dataList.length) + '%';
       console.log(this.colsStyle.width);
     }, (response) => {
@@ -149,28 +196,58 @@ export default {
 
 </script>
 <style>
-.flip-list-move {
-  transition: transform 0.5s;
-}
-
-.no-move {
-  transition: transform 0s;
-}
-
-.ghost {
-  opacity: .5;
-  background: #C8EBFB;
-}
-
 .list-group {
-  min-height: 20px;
-}
-
-.list-group-item {
-  cursor: move;
+  min-height: 10px;
 }
 
 .list-group-item i{
   cursor: pointer;
+}
+
+.layout{
+  background-color: rgb(236, 236, 236);
+}
+
+.header{
+  background-color: #7e57c2;
+}
+
+.logo{
+  font-size: 18px;
+  color: white;
+  display: inline-block;
+  padding: 10px 20px;
+}
+
+.nav{
+  display: inline-block;
+  width: calc(100% - 150px);
+  margin: 0 auto;
+}
+
+.tab{
+  margin: 0 auto;
+  width: 400px;
+  background-color: rgba(0, 0, 0, 0);
+}
+
+.content{
+  width: 90%;
+  margin: 0 auto;
+}
+
+.breadcrumb{
+  margin: 10px 0;
+}
+
+.body{
+  background-color: white;
+  border-radius: 5px;
+  min-height: 500px;
+}
+
+.footer{
+  padding: 20px 0;
+  text-align: center;
 }
 </style>

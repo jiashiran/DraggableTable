@@ -13,12 +13,12 @@
           <mu-tr  v-for="(val,i) in dataList">
             <div v-for="(va,key) in val" >
               <mu-td v-if="key==title.colName">
-                {{va}}
+                {{ va }}
               </mu-td>
             </div>
           </mu-tr>
           <mu-tr>
-            <mu-td>{{sum}}</mu-td>
+            <mu-td>{{title.sum}}</mu-td>
           </mu-tr>
         </mu-tbody>
       </mu-table>
@@ -80,13 +80,16 @@
           alert(event.target.tagName)
         }
       },
-      sumCal (data) {
-        this.sum = this.sum + data.length;
-        return data;
-      },
       addStr (str){
           return '（' + str + '）'
-      }
+      },
+      sumCol(va) {
+        this.sum = this.sum + va.length;
+        return {}
+      },
+    },
+    computed:{
+
     }
   }
 </script>
