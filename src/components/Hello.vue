@@ -32,9 +32,9 @@
           </div>
           <div>
             <mu-raised-button label="保存列信息" @click="saveColInfo()"/>
-            <mu-raised-button label="选择显示列" @click="toggle()"/>
-            <mu-raised-button label="start timer" @click="startTimer(2000)"/>
-            <mu-raised-button label="stop timer" @click="clearTimer"/>
+            <mu-raised-button label="选择显示列" @click="toggle(true)"/>
+            <mu-raised-button label="开始定时同步数据" @click="startTimer(2000)"/>
+            <mu-raised-button label="停止定时器" @click="clearTimer"/>
             <mu-drawer right :open="open" :docked="docked" @close="toggle()">
               <mu-list @itemClick="docked ? '' : toggle()">
                 <div v-for="e in titles">
@@ -174,36 +174,7 @@ export default {
     },
     startTimer(timestamp){
       if(this.timer == null){
-          this.timer = window.setInterval(function (thisis) {
-            console.log(new Date())
-            Vue.http.get('http://localhost:8089/dataList', {name: 'jobList'}).then((response) => {
-              console.log(response);
-              let json = JSON.parse(response.bodyText);
-              var sum = thisis.titles;
-              sum.forEach(function (s) {
-                s.name.sum = undefined;
-              })
-              json.forEach(function (d) {
-                Object.entries(d).forEach(function (v,i) {
-                  sum.forEach(function (t) {
-                    if(t.name.colName == v[0]){
-                      if(t.name.sum==undefined){
-                        t.name.sum = v[1]
-                      }else {
-                        t.name.sum = t.name.sum + v[1]
-                      }
-                    }
-                  })
-                })
-              });
-              //this.titles = sum;
-              thisis.dataList = json;
-              thisis.colsStyle.width = String(100/thisis.dataList.length) + '%';
-              console.log(thisis.colsStyle.width);
-            }, (response) => {
-
-            })
-          }(this),timestamp);
+          this.timer = setInterval(this.getDataList,timestamp);
       }else {
         this.snackbarMessage = '已开启定时器'
         this.snackbar = true
@@ -211,6 +182,36 @@ export default {
         this.snackTimer = setTimeout(() => { this.snackbar = false }, 2000)
       }
 
+    },
+    getDataList: function() {
+      console.log(new Date())
+      Vue.http.get('http://localhost:8089/dataList', {name: 'jobList'}).then((response) => {
+        console.log(response);
+        let json = JSON.parse(response.bodyText);
+        var sum = this.titles;
+        sum.forEach(function (s) {
+          s.name.sum = undefined;
+        })
+        json.forEach(function (d) {
+          Object.entries(d).forEach(function (v,i) {
+            sum.forEach(function (t) {
+              if(t.name.colName == v[0]){
+                if(t.name.sum==undefined){
+                  t.name.sum = Number(v[1])
+                }else {
+                  t.name.sum = Number(t.name.sum) + Number(v[1])
+                }
+              }
+            })
+          })
+        });
+        //this.titles = sum;
+        this.dataList = json;
+        this.colsStyle.width = String(100/this.dataList.length) + '%';
+        //console.log(this.colsStyle.width);
+      }, (response) => {
+
+      })
     },
     clearTimer(){
       if(this.timer != null){
@@ -278,7 +279,7 @@ export default {
       this.titles = sum;
       this.dataList = json;
       this.colsStyle.width = String(100/this.dataList.length) + '%';
-      console.log(this.colsStyle.width);
+      //console.log(this.colsStyle.width);
     }, (response) => {
 
     })
