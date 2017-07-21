@@ -190,6 +190,10 @@ export default {
       }
       if(this.timer == null){
           this.timer = setInterval(this.getDataList,tI*1000);
+        this.snackbarMessage = '已开启定时器！'
+        this.snackbar = true
+        if (this.snackTimer) clearTimeout(this.snackTimer)
+        this.snackTimer = setTimeout(() => { this.snackbar = false }, 2000)
       }else {
         this.snackbarMessage = '已开启定时器'
         this.snackbar = true
