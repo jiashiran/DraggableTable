@@ -132,7 +132,7 @@ export default {
          array.push(object)
       })
       //console.log(JSON.stringify(array))
-      Vue.http.get('http://localhost:8089/saveColInfo',{params: {colInfo: JSON.stringify(array)}}).then((response) => {
+      Vue.http.post('http://localhost:8089/rest/set/colNames',{colNames: JSON.stringify(array)}).then((response) => {
         console.log(response);
         if(response.status==200){
           this.snackbarMessage = '更新成功！'
@@ -200,7 +200,7 @@ export default {
     },
     getDataList: function() {
       console.log(new Date())
-      Vue.http.get('http://localhost:8089/dataList', {name: 'jobList'}).then((response) => {
+      Vue.http.get('http://localhost:8089/rest/get/dataList', {name: 'jobList'}).then((response) => {
         console.log(response);
         let json = JSON.parse(response.bodyText);
         var sum = this.titles;
@@ -266,7 +266,7 @@ export default {
     }
   },
   beforeCreate () {
-    Vue.http.get('http://localhost:8089/colNames',{name: 'jobList'}).then((response) => {
+    Vue.http.get('http://localhost:8089/rest/get/colNames',{name: 'jobList'}).then((response) => {
       console.log(response);
       let json = JSON.parse(response.bodyText);
       this.titles = json.map( (name,index) => {return {name,index, order: index+1, fixed: false}; });
@@ -274,7 +274,7 @@ export default {
     }, (response) => {
 
     });
-    Vue.http.get('http://localhost:8089/dataList', {name: 'jobList'}).then((response) => {
+    Vue.http.get('http://localhost:8089/rest/get/dataList', {name: 'jobList'}).then((response) => {
       console.log(response);
       let json = JSON.parse(response.bodyText);
       var sum = this.titles;
