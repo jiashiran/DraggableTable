@@ -31,9 +31,10 @@
             </div>
           </div>
           <div>
-            <mu-raised-button label="保存列信息" @click="saveColInfo()"/>
-            <mu-raised-button label="选择显示列" @click="toggle(true)"/>
-            <mu-raised-button label="开始定时同步数据" @click="startTimer(2000)"/>
+            <mu-raised-button label="保存列信息" @click="saveColInfo()"/>&nbsp;&nbsp;
+            <mu-raised-button label="选择显示列" @click="toggle()"/>&nbsp;&nbsp;&nbsp;&nbsp;
+            <mu-text-field  label="间隔时间,单位S" style="width: 150px;"  v-model="timerInterval" hintText="输入数字"/>&nbsp;&nbsp;
+            <mu-raised-button label="开始定时同步数据" @click="startTimer()"/>&nbsp;&nbsp;
             <mu-raised-button label="停止定时器" @click="clearTimer"/>
             <mu-drawer right :open="open" :docked="docked" @close="toggle()">
               <mu-list @itemClick="docked ? '' : toggle()">
@@ -86,13 +87,11 @@ export default {
           float:'left',
           width: '5%',
       },
-      column:column,
       editable:true,
       isDragging: false,
       delayedDragging:false,
       dataList:[],//[{"col6":"1_6","col4":"1_4","col5":"1_5","col2":"1_2","col3":"1_3","col1":"1_1"},{"col6":"2_6","col4":"2_4","col5":"2_5","col2":"2_2","col3":"2_3","col1":"2_1"},{"col6":"3_6","col4":"3_4","col5":"3_5","col2":"3_2","col3":"3_3","col1":"3_1"},{"col6":"4_6","col4":"4_4","col5":"4_5","col2":"4_2","col3":"4_3","col1":"4_1"},{"col6":"5_6","col4":"5_4","col5":"5_5","col2":"5_2","col3":"5_3","col1":"5_1"},{"col6":"6_6","col4":"6_4","col5":"6_5","col2":"6_2","col3":"6_3","col1":"6_1"},{"col6":"7_6","col4":"7_4","col5":"7_5","col2":"7_2","col3":"7_3","col1":"7_1"}],
       titles:[],//[{"col6":"1_6","col4":"1_4","col5":"1_5","col2":"1_2","col3":"1_3","col1":"1_1"},{"col6":"2_6","col4":"2_4","col5":"2_5","col2":"2_2","col3":"2_3","col1":"2_1"},{"col6":"3_6","col4":"3_4","col5":"3_5","col2":"3_2","col3":"3_3","col1":"3_1"},{"col6":"4_6","col4":"4_4","col5":"4_5","col2":"4_2","col3":"4_3","col1":"4_1"},{"col6":"5_6","col4":"5_4","col5":"5_5","col2":"5_2","col3":"5_3","col1":"5_1"},{"col6":"6_6","col4":"6_4","col5":"6_5","col2":"6_2","col3":"6_3","col1":"6_1"},{"col6":"7_6","col4":"7_4","col5":"7_5","col2":"7_2","col3":"7_3","col1":"7_1"}].map( (name,index) => {return {name,index, order: index+1, fixed: false}; }),
-      showTitles:[],
       open: false,
       docked: true,
       activeTab: 'tab1',
@@ -100,6 +99,7 @@ export default {
       snackbar: false,
       snackbarMessage:'',
       timer:null,
+      timerInterval:null,
     }
   },
   methods:{
@@ -172,9 +172,24 @@ export default {
       this.snackbar = false
       if (this.snackTimer) clearTimeout(this.snackTimer)
     },
-    startTimer(timestamp){
+    startTimer(){
+      if(Number.isNaN(Number(this.timerInterval))){
+        this.snackbarMessage = '定时器间隔时间是数字类型!'
+        this.snackbar = true
+        if (this.snackTimer) clearTimeout(this.snackTimer)
+        this.snackTimer = setTimeout(() => { this.snackbar = false }, 2000)
+        return
+      }
+      var tI = Number(this.timerInterval)
+      if(tI < 1 || tI > 60){
+        this.snackbarMessage = '定时器间隔时间最小是1S，最大60S!'
+        this.snackbar = true
+        if (this.snackTimer) clearTimeout(this.snackTimer)
+        this.snackTimer = setTimeout(() => { this.snackbar = false }, 2000)
+        return
+      }
       if(this.timer == null){
-          this.timer = setInterval(this.getDataList,timestamp);
+          this.timer = setInterval(this.getDataList,tI*1000);
       }else {
         this.snackbarMessage = '已开启定时器'
         this.snackbar = true
@@ -214,7 +229,7 @@ export default {
       })
     },
     clearTimer(){
-      if(this.timer != null){
+      if(this.timer != null && this.timer != 0){
         window.clearInterval(this.timer);
         this.timer = null;
         this.snackbarMessage = '定时器已关闭'
