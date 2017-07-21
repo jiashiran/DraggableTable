@@ -18,7 +18,7 @@
             </div>
           </mu-tr>
           <mu-tr>
-            <mu-td>{{title.sum}}</mu-td>
+            <mu-td>sum:{{title.sum}}</mu-td>
           </mu-tr>
         </mu-tbody>
       </mu-table>
