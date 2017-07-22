@@ -11,10 +11,7 @@
       </div>
     </div>
     <div class="content">
-      <!--<div class="breadcrumb">
-      </div>-->
       <div class="body">
-        <!--<mu-sub-header>阳光</mu-sub-header>-->
         <mu-content-block>
           <div class="form-group form-group-lg panel panel-default">
             <div class="panel-heading">
